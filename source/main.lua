@@ -11,7 +11,10 @@ local geo <const> = playdate.geometry
 local playerSprite = nil
 local playerJiggle = 0
 local ballSprite = nil
+ballPosition = nil
+
 local fishes = {}
+local money = 0
 
 local waterAmount = 1000
 local targetWaterAmount = 1000
@@ -113,6 +116,7 @@ local function initialize()
     waterSprite = gfx.sprite.new(waterImage)
     waterSprite:setZIndex(4)
     waterSprite:setCenter(0, 0)
+    waterSprite:setRedrawsOnImageChange(false)
     waterSprite:add()
 
     local playerImage = gfx.image.new("images/boat")
@@ -128,10 +132,12 @@ local function initialize()
     ballSprite:moveTo(200, 180)
     ballSprite:setCollideRect(0, 0, ballSprite:getSize())
     ballSprite:setZIndex(6)
+    ballSprite:setGroups(2)
+    ballSprite:setCollidesWithGroups(3)
     ballSprite:add()
 
-    -- spawn 12 fishes
-    for i = 1, 12, 1 do
+    -- spawn 10 fishes
+    for i = 1, 10, 1 do
         spawnFish()
     end
 
@@ -160,26 +166,19 @@ function playdate.update()
     playerJiggle = spring(playerJiggle, math.atan2(playerY2 - playerY1, 10) * 2, 0.2)
     playerSprite:setRotation(math.deg(playerJiggle))
     
-    -- draw hint text
-    --gfx.setImageDrawMode(gfx.kDrawModeCopy)
-    gfx.drawText("Amount: " .. waterAmount, 10, 10)
-    
     -- move the hook
     local newPoolLocation = rotate_point(playerSprite.x, playerSprite.y, -playerJiggle, geo.point.new(playerSprite.x - 19, playerSprite.y - 18))
-    local targetBallPosition = geo.point.new(spring(ballSprite.x, newPoolLocation.x, 0.05), spring(ballSprite.y, newPoolLocation.y + 50, 0.05))
-    ballSprite:moveTo(targetBallPosition)
-
+    ballPosition = geo.point.new(spring(ballSprite.x, newPoolLocation.x, 0.05), spring(ballSprite.y, newPoolLocation.y + 50, 0.05))
+    ballSprite:moveTo(ballPosition)
+    
     -- draw dynamic waves
     gfx.lockFocus(waterImage)
     -- waterSprite:setClipRect(0, waterHeight - waterStrength, 400, 240 - waterHeight + waterStrength)
-    -- waterSprite.addDirtyRect(0, 0, 100, 180)
     waterImage:clear(gfx.kColorClear)
     drawWave(calcWave(100, waterHeight), gfx.kColorXOR)
+    waterSprite.addDirtyRect(0, 0, 100, 180)
     gfx.unlockFocus()
     
-    -- update sprites
-    gfx.sprite.update()
-
     --[[ draw the constant white wave
     gfx.setClipRect(0, wate,brHeight + 5, 400, 240 - waterHeight + 5)
     gfx.setColor(gfx.kColorXOR)
@@ -187,17 +186,25 @@ function playdate.update()
     gfx.fillRect(0, waterHeight + 5, 400, 240 - waterHeight + 5)
     gfx.clearClipRect()
     ]]--
-    
-    -- draw the line
-    gfx.setColor(gfx.kColorWhite)
-    gfx.setLineWidth(2)
-    gfx.setLineCapStyle(gfx.kLineCapStyleRound)
-    gfx.drawLine(newPoolLocation.x, newPoolLocation.y, targetBallPosition.x, targetBallPosition.y)
 
     -- update all fishes
     for i, fish in ipairs(fishes) do
         fish:update()
     end
+
+    -- update sprites
+    gfx.sprite.update()
+    
+    -- draw hint text
+    -- gfx.setImageDrawMode(gfx.kDrawModeXOR)
+    gfx.drawText("🪙: " .. money, 10, 10)
+    
+    -- draw the line
+    gfx.setColor(gfx.kColorWhite)
+    gfx.setLineWidth(2)
+    gfx.setLineCapStyle(gfx.kLineCapStyleRound)
+    gfx.drawLine(newPoolLocation.x, newPoolLocation.y, ballPosition.x, ballPosition.y)
+
 
 end
 

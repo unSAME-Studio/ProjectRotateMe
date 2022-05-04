@@ -10,6 +10,7 @@ function Fish:new()
     -- states
     self.type = "fish"
     self.inAir = false
+    self.caught = false
     
     -- movement
     self.direction = math.random(0, 1) == 1 and 1 or -1
@@ -27,19 +28,33 @@ function Fish:new()
         self:setImageFlip("flipX")
     end
 
+    -- add fish to collision group 3
+    -- player is in group 2
+    self:setGroups(3)
+    self:setCollidesWithGroups(2)
+
     function self:kill()
-        
+        self:remove()
     end
 
     function self:collide(s)
         print("collide")
-    end
 
-    function self:hit()
-        
-    end
+        self.caught = true
 
+    end
+    
     function self:update()
+        -- process collision
+        local collide = self:overlappingSprites()
+        if collide[1] then
+            self:collide(collide[1])
+        end
+        
+        -- check if caught
+        if self.caught then
+            self:moveTo(ballPosition)
+        end
 
         -- check if fish is in air
         local waterHeight = math.sin(self.x / 20 + playdate.getCurrentTimeMilliseconds() / 200) * waterStrength + waterHeight
@@ -65,6 +80,7 @@ function Fish:new()
         elseif self.x < -20 then
             self:moveTo(420, self.y)
         end
+
     end
 
     function self:collisionResponse(other)
