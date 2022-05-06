@@ -42,18 +42,20 @@ function Fish:new()
 
         self.caught = true
 
+        money = money + 1
     end
     
     function self:update()
+        -- check if caught
+        if self.caught then
+            self:moveTo(ballPosition)
+            return
+        end
+
         -- process collision
         local collide = self:overlappingSprites()
         if collide[1] then
             self:collide(collide[1])
-        end
-        
-        -- check if caught
-        if self.caught then
-            self:moveTo(ballPosition)
         end
 
         -- check if fish is in air

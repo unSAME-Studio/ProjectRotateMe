@@ -14,7 +14,7 @@ local ballSprite = nil
 ballPosition = nil
 
 local fishes = {}
-local money = 0
+money = 0
 
 local waterAmount = 1000
 local targetWaterAmount = 1000
